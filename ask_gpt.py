@@ -97,7 +97,8 @@ questions = [
     "Who are the users that have both offered and received games in trades?",
     "What is the average base price of games for each platform?",
     "Which users have games in their inventory but haven't made any trades?",
-    "What is the total value of each user's inventory based on the current trade values?"
+    "What is the total value of each user's inventory based on the current trade values?",
+    "Who has referred who in the referral program?",
 ]
 
 def sanitize_for_just_sql(value):
