@@ -8,14 +8,19 @@ import alive_progress
 
 colorama.init()
 
-# Start message
 print(colorama.Fore.GREEN + "Running ask_gpt.py")
-print(colorama.Fore.GREEN + "This script will ask the GPT-3 model for a sql response to a question.")
 
-# Load the API key
-with open("config.json") as f:
-    config = json.load(f)
-    api_key = config
 
-# SQLITE database setup
-sqliteDb = "data.db"
+client = OpenAI(
+  api_key=""
+  )
+
+completion = client.chat.completions.create(
+  model="gpt-4o-mini",
+  store=True,
+  messages=[
+    {"role": "user", "content": "write a haiku about ai"}
+  ]
+)
+
+print(completion.choices[0].message);
