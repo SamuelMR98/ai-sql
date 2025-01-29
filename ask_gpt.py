@@ -10,17 +10,35 @@ colorama.init()
 
 print(colorama.Fore.GREEN + "Running ask_gpt.py")
 
+# Load and get DB
+fdir = os.path.dirname(__file__)
+def getPath(filename):
+    return os.path.join(fdir, filename)
 
-client = OpenAI(
-  api_key=""
-  )
+dbPath = getPath("vgs.db")
+createTablePath = getPath("create_tables.sql")
+mockDataPath = getPath("mock_data.sql")
 
-completion = client.chat.completions.create(
-  model="gpt-4o-mini",
-  store=True,
-  messages=[
-    {"role": "user", "content": "write a haiku about ai"}
-  ]
-)
+# Clean up the DB
+if os.path.exists(dbPath):
+    os.remove(dbPath)
 
-print(completion.choices[0].message);
+# Connect to the DB
+conn = sqlite3.connect(dbPath)
+cur = conn.cursor()
+
+# Create the tables
+with open(createTablePath, "r") as f:
+    cur.executescript(f.read())
+
+# Insert the mock data
+with open(mockDataPath, "r") as f:
+    cur.executescript(f.read())
+
+def run_query(query):
+    cur.execute(query)
+    return cur.fetchall()
+
+# OPENAI
+configPath = getPath("auth.json")
+

@@ -16,7 +16,7 @@ ask_gpt.py is a Python script that uses the OpenAI GPT-4 API to generate SQL que
 
 Once you have the API key, you can run the script as follows:
 
-The auth data should be stored in a file called `config.json` in the following format:
+The auth data should be stored in a file called `auth.json` in the following format:
 
 ```json
 {
