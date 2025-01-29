@@ -41,4 +41,10 @@ def run_query(query):
 
 # OPENAI
 configPath = getPath("auth.json")
+with open(configPath, "r") as f:
+    config = json.load(f)
+
+openai = OpenAI(config["openaiKey"])
+
+
 
