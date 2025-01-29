@@ -1,0 +1,62 @@
+{
+  "strategy": "zero_shot",
+  "prompt_prefix": "-- Create Users table\nCREATE TABLE Users (\n    userID INTEGER PRIMARY KEY AUTOINCREMENT,\n    username VARCHAR(50) NOT NULL UNIQUE,\n    email VARCHAR(100) NOT NULL UNIQUE,\n    password VARCHAR(255) NOT NULL,\n    registrationDate DATE NOT NULL,\n    referredBy INT,\n    FOREIGN KEY (referredBy) REFERENCES Users(userID)\n);\n\n-- Create Games table\nCREATE TABLE Games (\n    gameID INTEGER PRIMARY KEY AUTOINCREMENT,\n    title VARCHAR(100) NOT NULL,\n    developer VARCHAR(100) NOT NULL,\n    releaseDate DATE NOT NULL,\n    genre VARCHAR(50) NOT NULL,\n    platform VARCHAR(50) NOT NULL,\n    basePrice DECIMAL(10, 2) NOT NULL\n);\n\n-- Create UserInventory table\nCREATE TABLE UserInventory (\n    inventoryID INTEGER PRIMARY KEY AUTOINCREMENT,\n    userID INT NOT NULL,\n    gameID INT NOT NULL,\n    purchaseDate DATE NOT NULL,\n    tradeValue DECIMAL(10, 2) NOT NULL,\n    FOREIGN KEY (userID) REFERENCES Users(userID),\n    FOREIGN KEY (gameID) REFERENCES Games(gameID)\n);\n\n-- Create Trades table\nCREATE TABLE Trades (\n    tradeID INTEGER PRIMARY KEY AUTOINCREMENT,\n    offerUserID INT NOT NULL,\n    receiveUserID INT NOT NULL,\n    offerGameID INT NOT NULL,\n    receiveGameID INT NOT NULL,\n    tradeDate DATE NOT NULL,\n    status TEXT CHECK(status IN ('Pending', 'Accepted', 'Rejected')) NOT NULL,\n    FOREIGN KEY (offerUserID) REFERENCES Users(userID),\n    FOREIGN KEY (receiveUserID) REFERENCES Users(userID),\n    FOREIGN KEY (offerGameID) REFERENCES Games(gameID),\n    FOREIGN KEY (receiveGameID) REFERENCES Games(gameID)\n);\n\n-- Create GameBundles table\nCREATE TABLE GameBundles (\n    bundleID INTEGER PRIMARY KEY AUTOINCREMENT,\n    bundleName VARCHAR(100) NOT NULL,\n    description TEXT,\n    discountPercentage DECIMAL(5, 2) NOT NULL\n);\n\n-- Create BundleGames table\nCREATE TABLE BundleGames (\n    bundleItemID INTEGER PRIMARY KEY AUTOINCREMENT,\n    bundleID INT NOT NULL,\n    gameID INT NOT NULL,\n    parentBundleItemID INT,\n    FOREIGN KEY (bundleID) REFERENCES GameBundles(bundleID),\n    FOREIGN KEY (gameID) REFERENCES Games(gameID),\n    FOREIGN KEY (parentBundleItemID) REFERENCES BundleGames(bundleItemID)\n);\nGive me a SQLite SELECT statement that answers the question. Only respond with SQLite syntax. If there is an error, do not explain it!",
+  "questionResults": [
+    {
+      "question": "Which are the most expensive games?",
+      "sql": "SELECT title, basePrice \nFROM Games \nORDER BY basePrice DESC;",
+      "queryRawResponse": "[('The Last of Us Part II', 59.99), ('Animal Crossing: New Horizons', 59.99), ('Ghost of Tsushima', 59.99), ('Doom Eternal', 59.99), ('Final Fantasy VII Remake', 59.99), (\"Assassin's Creed Valhalla\", 59.99), ('Cyberpunk 2077', 49.99), ('Minecraft', 26.95), ('Hades', 24.99), ('Among Us', 4.99)]",
+      "friendlyResponse": "The most expensive games are 'The Last of Us Part II', 'Animal Crossing: New Horizons', 'Ghost of Tsushima', 'Doom Eternal', 'Final Fantasy VII Remake', and 'Assassin's Creed Valhalla', all priced at $59.99. 'Cyberpunk 2077' is a bit cheaper at $49.99, followed by 'Minecraft' at $26.95, 'Hades' at $24.99, and 'Among Us' at $4.99.",
+      "error": "None"
+    },
+    {
+      "question": "Which users have participated in the most trades?",
+      "sql": "SELECT userID, COUNT(*) as TradeCount \nFROM (\n    SELECT offerUserID as userID FROM Trades \n    UNION ALL \n    SELECT receiveUserID as userID FROM Trades \n) \nGROUP BY userID \nORDER BY TradeCount DESC;",
+      "queryRawResponse": "[(6, 1), (5, 1), (4, 1), (3, 1), (2, 1), (1, 1)]",
+      "friendlyResponse": "Each user, with user IDs 1 through 6., has participated in 1 trade each.",
+      "error": "None"
+    },
+    {
+      "question": "What are the top 3 most common game genres?",
+      "sql": "SELECT genre, COUNT(*) as count\nFROM Games\nGROUP BY genre\nORDER BY count DESC\nLIMIT 3;",
+      "queryRawResponse": "[('RPG', 2), ('Action-Adventure', 2), ('Simulation', 1)]",
+      "friendlyResponse": "The top 3 most common game genres are RPG and Action-Adventure, both having 2 instances, followed by Simulation with 1 instance.",
+      "error": "None"
+    },
+    {
+      "question": "Which games are included in bundles with a discount greater than 15%?",
+      "sql": "SELECT Games.title \nFROM Games\nINNER JOIN BundleGames ON Games.gameID = BundleGames.gameID\nINNER JOIN GameBundles ON BundleGames.bundleID = GameBundles.bundleID\nWHERE GameBundles.discountPercentage > 15;",
+      "queryRawResponse": "[('Cyberpunk 2077',), ('Final Fantasy VII Remake',)]",
+      "friendlyResponse": "The games included in bundles with a discount greater than 15% are 'Cyberpunk 2077' and 'Final Fantasy VII Remake'.",
+      "error": "None"
+    },
+    {
+      "question": "Who are the users that have both offered and received games in trades?",
+      "sql": "SELECT DISTINCT U.username\nFROM Users U\nJOIN Trades T1 ON U.userID =  T1.offerUserID\nJOIN Trades T2 ON U.userID = T2.receiveUserID;",
+      "queryRawResponse": "[]",
+      "friendlyResponse": "It appears that there are currently no users who have both offered and received games in trades.",
+      "error": "None"
+    },
+    {
+      "question": "What is the average base price of games for each platform?",
+      "sql": "SELECT platform, AVG(basePrice) as AverageBasePrice\nFROM Games\nGROUP BY platform;",
+      "queryRawResponse": "[('Multi-platform', 37.81666666666667), ('Nintendo Switch', 59.99), ('PlayStation', 59.99)]",
+      "friendlyResponse": "The average base price for games is approximately $37.82 for multi-platform games, $59.99 for the Nintendo Switch and also $59.99 for PlayStation.",
+      "error": "None"
+    },
+    {
+      "question": "Which users have games in their inventory but haven't made any trades?",
+      "sql": "SELECT u.userID, u.username\nFROM Users u\nINNER JOIN UserInventory ui ON u.userID = ui.userID\nWHERE u.userID NOT IN (SELECT offerUserID FROM Trades)\nAND u.userID NOT IN (SELECT receiveUserID FROM Trades);",
+      "queryRawResponse": "[]",
+      "friendlyResponse": "There are no users who have games in their inventory but haven't made any trades.",
+      "error": "None"
+    },
+    {
+      "question": "What is the total value of each user's inventory based on the current trade values?",
+      "sql": "SELECT Users.userID, Users.username, SUM(UserInventory.tradeValue) AS TotalValue\nFROM Users\nJOIN UserInventory ON Users.userID = UserInventory.userID\nGROUP BY Users.userID;",
+      "queryRawResponse": "[(1, 'john_doe', 85), (2, 'jane_smith', 75), (3, 'mike_johnson', 65), (4, 'emily_brown', 85), (5, 'david_wilson', 23)]",
+      "friendlyResponse": "The total value of each user's inventory based on the current trade values is as follows: John Doe has a total value of 85, Jane Smith has 75, Mike Johnson has 65, Emily Brown has 85, and David Wilson has 23.",
+      "error": "None"
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "strategy": "single_domain_example",
+  "prompt_prefix": "-- Create Users table\nCREATE TABLE Users (\n    userID INTEGER PRIMARY KEY AUTOINCREMENT,\n    username VARCHAR(50) NOT NULL UNIQUE,\n    email VARCHAR(100) NOT NULL UNIQUE,\n    password VARCHAR(255) NOT NULL,\n    registrationDate DATE NOT NULL,\n    referredBy INT,\n    FOREIGN KEY (referredBy) REFERENCES Users(userID)\n);\n\n-- Create Games table\nCREATE TABLE Games (\n    gameID INTEGER PRIMARY KEY AUTOINCREMENT,\n    title VARCHAR(100) NOT NULL,\n    developer VARCHAR(100) NOT NULL,\n    releaseDate DATE NOT NULL,\n    genre VARCHAR(50) NOT NULL,\n    platform VARCHAR(50) NOT NULL,\n    basePrice DECIMAL(10, 2) NOT NULL\n);\n\n-- Create UserInventory table\nCREATE TABLE UserInventory (\n    inventoryID INTEGER PRIMARY KEY AUTOINCREMENT,\n    userID INT NOT NULL,\n    gameID INT NOT NULL,\n    purchaseDate DATE NOT NULL,\n    tradeValue DECIMAL(10, 2) NOT NULL,\n    FOREIGN KEY (userID) REFERENCES Users(userID),\n    FOREIGN KEY (gameID) REFERENCES Games(gameID)\n);\n\n-- Create Trades table\nCREATE TABLE Trades (\n    tradeID INTEGER PRIMARY KEY AUTOINCREMENT,\n    offerUserID INT NOT NULL,\n    receiveUserID INT NOT NULL,\n    offerGameID INT NOT NULL,\n    receiveGameID INT NOT NULL,\n    tradeDate DATE NOT NULL,\n    status TEXT CHECK(status IN ('Pending', 'Accepted', 'Rejected')) NOT NULL,\n    FOREIGN KEY (offerUserID) REFERENCES Users(userID),\n    FOREIGN KEY (receiveUserID) REFERENCES Users(userID),\n    FOREIGN KEY (offerGameID) REFERENCES Games(gameID),\n    FOREIGN KEY (receiveGameID) REFERENCES Games(gameID)\n);\n\n-- Create GameBundles table\nCREATE TABLE GameBundles (\n    bundleID INTEGER PRIMARY KEY AUTOINCREMENT,\n    bundleName VARCHAR(100) NOT NULL,\n    description TEXT,\n    discountPercentage DECIMAL(5, 2) NOT NULL\n);\n\n-- Create BundleGames table\nCREATE TABLE BundleGames (\n    bundleItemID INTEGER PRIMARY KEY AUTOINCREMENT,\n    bundleID INT NOT NULL,\n    gameID INT NOT NULL,\n    parentBundleItemID INT,\n    FOREIGN KEY (bundleID) REFERENCES GameBundles(bundleID),\n    FOREIGN KEY (gameID) REFERENCES Games(gameID),\n    FOREIGN KEY (parentBundleItemID) REFERENCES BundleGames(bundleItemID)\n);\n Which users have more than one game in their inventory?  \nSELECT u.userID, u.username, COUNT(ui.gameID) as game_count\nFROM Users u\nJOIN UserInventory ui ON u.userID = ui.userID\nGROUP BY u.userID\nHAVING game_count > 1;\n Give me a SQLite SELECT statement that answers the question. Only respond with SQLite syntax. If there is an error, do not explain it!",
+  "questionResults": [
+    {
+      "question": "Which are the most expensive games?",
+      "sql": "SELECT title, developer, MAX(basePrice) as Max_Price\nFROM Games\nGROUP BY title, developer\nORDER BY Max_Price DESC;",
+      "queryRawResponse": "[('Animal Crossing: New Horizons', 'Nintendo', 59.99), (\"Assassin's Creed Valhalla\", 'Ubisoft', 59.99), ('Doom Eternal', 'id Software', 59.99), ('Final Fantasy VII Remake', 'Square Enix', 59.99), ('Ghost of Tsushima', 'Sucker Punch Productions', 59.99), ('The Last of Us Part II', 'Naughty Dog', 59.99), ('Cyberpunk 2077', 'CD Projekt Red', 49.99), ('Minecraft', 'Mojang Studios', 26.95), ('Hades', 'Supergiant Games', 24.99), ('Among Us', 'InnerSloth', 4.99)]",
+      "friendlyResponse": "The most expensive games are 'Animal Crossing: New Horizons' by Nintendo, \"Assassin's Creed Valhalla\" by Ubisoft, 'Doom Eternal' by id Software, 'Final Fantasy VII Remake' by Square Enix, 'Ghost of Tsushima' by Sucker Punch Productions, and 'The Last of Us Part II' by Naughty Dog, all priced at $59.99. 'Cyberpunk 2077' by CD Projekt Red is slightly cheaper at $49.99. 'Minecraft' by Mojang Studios is $26.95. While 'Hades' from Supergiant Games and 'Among Us' by InnerSloth are the most affordable at $24.99 and $4.99 respectively.",
+      "error": "None"
+    },
+    {
+      "question": "Which users have participated in the most trades?",
+      "sql": "SELECT u.userID, u.username, COUNT(t.tradeID) as trade_count\nFROM Users u\nJOIN Trades t ON u.userID = t.offerUserID OR u.userID = t.receiveUserID\nGROUP BY u.userID\nORDER BY trade_count DESC\nLIMIT 1;",
+      "queryRawResponse": "[(6, 'sarah_lee', 1)]",
+      "friendlyResponse": "The user who has participated in the most trades is 'sarah_lee' with 1 trade.",
+      "error": "None"
+    },
+    {
+      "question": "What are the top 3 most common game genres?",
+      "sql": "SELECT genre, COUNT(*) as count \nFROM Games \nGROUP BY genre \nORDER BY count DESC \nLIMIT 3;",
+      "queryRawResponse": "[('RPG', 2), ('Action-Adventure', 2), ('Simulation', 1)]",
+      "friendlyResponse": "The top three most common game genres are RPG, Action-Adventure, and Simulation.",
+      "error": "None"
+    },
+    {
+      "question": "Which games are included in bundles with a discount greater than 15%?",
+      "sql": "SELECT g.gameID, g.title\nFROM Games g\nJOIN BundleGames bg ON g.gameID = bg.gameID\nJOIN GameBundles gb ON bg.bundleID = gb.bundleID\nWHERE gb.discountPercentage > 15;",
+      "queryRawResponse": "[(2, 'Cyberpunk 2077'), (7, 'Final Fantasy VII Remake')]",
+      "friendlyResponse": "The games included in bundles with a discount greater than 15% are 'Cyberpunk 2077' and 'Final Fantasy VII Remake'.",
+      "error": "None"
+    },
+    {
+      "question": "Who are the users that have both offered and received games in trades?",
+      "sql": "SELECT DISTINCT u.userID, u.username\nFROM Users u\nJOIN Trades t1 ON u.userID = t1.offerUserID\nJOIN Trades t2 ON u.userID = t2.receiveUserID;",
+      "queryRawResponse": "[]",
+      "friendlyResponse": "It appears that there are no users who have both offered and received games in trades.",
+      "error": "None"
+    },
+    {
+      "question": "What is the average base price of games for each platform?",
+      "sql": "SELECT platform, AVG(basePrice) as average_base_price\nFROM Games\nGROUP BY platform;",
+      "queryRawResponse": "[('Multi-platform', 37.81666666666667), ('Nintendo Switch', 59.99), ('PlayStation', 59.99)]",
+      "friendlyResponse": "The average base price for games is approximately $37.82 for Multi-platform, $59.99 for Nintendo Switch, and $59.99 for PlayStation.",
+      "error": "None"
+    },
+    {
+      "question": "Which users have games in their inventory but haven't made any trades?",
+      "sql": "SELECT u.userID, u.username \nFROM Users u \nJOIN UserInventory ui ON u.userID = ui.userID \nLEFT JOIN Trades t ON u.userID = t.offerUserID OR u.userID = t.receiveUserID\nWHERE t.tradeID IS NULL;",
+      "queryRawResponse": "[]",
+      "friendlyResponse": "There are no users who have games in their inventory but haven't made any trades.",
+      "error": "None"
+    },
+    {
+      "question": "What is the total value of each user's inventory based on the current trade values?",
+      "sql": "SELECT ui.userID, SUM(ui.tradeValue) AS total_inventory_value\nFROM UserInventory ui\nGROUP BY ui.userID;",
+      "queryRawResponse": "[(1, 85), (2, 75), (3, 65), (4, 85), (5, 23)]",
+      "friendlyResponse": "The total value of each user's inventory based on the current trade values is as follows: User 1 has a total value of 85, User 2 has a total value of 75, User 3 has a total value of 65, User 4 also has a total value of 85, and User 5 has a total value of 23.",
+      "error": "None"
+    }
+  ]
+}

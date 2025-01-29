@@ -56,13 +56,24 @@ def ask_gpt(content):
     )
 
     response_list = []
+    buffer = ""
     for chunk in stream:
         if chunk.choices[0].delta.content is not None:
-            response_list.append(chunk.choices[0].delta.content)
-            print(chunk.choices[0].delta.content, end='', flush=True)
+            buffer += chunk.choices[0].delta.content
+            if '\n' in buffer:
+                lines = buffer.split('\n')
+                for line in lines[:-1]:
+                    print(line.strip())
+                    response_list.append(line + '\n')
+                buffer = lines[-1]
+
+    if buffer:
+        print(buffer.strip())
+        response_list.append(buffer)
 
     print()  # New line after the response
     return "".join(response_list)
+
 
 # Strategies to get a correct answer
 with open(createTablePath, "r") as f:
@@ -90,7 +101,7 @@ questions = [
 ]
 
 def sanitize_for_just_sql(value):
-    gpt_start_sql_marker = "```
+    gpt_start_sql_marker = "```"
     gpt_end_sql_marker = "```"
     if gpt_start_sql_marker in value:
         value = value.split(gpt_start_sql_marker)[1]
@@ -108,15 +119,18 @@ for strategy in strategies:
             print(colorama.Fore.CYAN + f"\nQuestion: {question}")
             error = "None"
             try:
+                print(colorama.Fore.YELLOW + "Generating SQL Query...")
                 sql_syntax_response = ask_gpt(strategies[strategy] + " " + question)
                 sql_syntax_response = sanitize_for_just_sql(sql_syntax_response)
                 print(colorama.Fore.MAGENTA + "SQL Query:")
                 print(sql_syntax_response)
-                
+
+                print(colorama.Fore.YELLOW + "Executing Query...")
                 query_raw_response = str(run_query(sql_syntax_response))
                 print(colorama.Fore.BLUE + "Raw Query Result:")
                 print(query_raw_response)
-                
+
+                print(colorama.Fore.YELLOW + "Generating Friendly Response...")
                 friendly_results_prompt = f"I asked a question '{question}' and the response was '{query_raw_response}'. Please give a concise response in a more friendly way. Do not give any other suggestions or chatter."
                 friendly_response = ask_gpt(friendly_results_prompt)
                 print(colorama.Fore.GREEN + "Friendly Response:")

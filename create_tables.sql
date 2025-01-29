@@ -1,6 +1,6 @@
 -- Create Users table
 CREATE TABLE Users (
-    userID INT PRIMARY KEY AUTO_INCREMENT,
+    userID INTEGER PRIMARY KEY AUTOINCREMENT,
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE Users (
 
 -- Create Games table
 CREATE TABLE Games (
-    gameID INT PRIMARY KEY AUTO_INCREMENT,
+    gameID INTEGER PRIMARY KEY AUTOINCREMENT,
     title VARCHAR(100) NOT NULL,
     developer VARCHAR(100) NOT NULL,
     releaseDate DATE NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE Games (
 
 -- Create UserInventory table
 CREATE TABLE UserInventory (
-    inventoryID INT PRIMARY KEY AUTO_INCREMENT,
+    inventoryID INTEGER PRIMARY KEY AUTOINCREMENT,
     userID INT NOT NULL,
     gameID INT NOT NULL,
     purchaseDate DATE NOT NULL,
@@ -33,13 +33,13 @@ CREATE TABLE UserInventory (
 
 -- Create Trades table
 CREATE TABLE Trades (
-    tradeID INT PRIMARY KEY AUTO_INCREMENT,
+    tradeID INTEGER PRIMARY KEY AUTOINCREMENT,
     offerUserID INT NOT NULL,
     receiveUserID INT NOT NULL,
     offerGameID INT NOT NULL,
     receiveGameID INT NOT NULL,
     tradeDate DATE NOT NULL,
-    status ENUM('Pending', 'Accepted', 'Rejected') NOT NULL,
+    status TEXT CHECK(status IN ('Pending', 'Accepted', 'Rejected')) NOT NULL,
     FOREIGN KEY (offerUserID) REFERENCES Users(userID),
     FOREIGN KEY (receiveUserID) REFERENCES Users(userID),
     FOREIGN KEY (offerGameID) REFERENCES Games(gameID),
@@ -48,7 +48,7 @@ CREATE TABLE Trades (
 
 -- Create GameBundles table
 CREATE TABLE GameBundles (
-    bundleID INT PRIMARY KEY AUTO_INCREMENT,
+    bundleID INTEGER PRIMARY KEY AUTOINCREMENT,
     bundleName VARCHAR(100) NOT NULL,
     description TEXT,
     discountPercentage DECIMAL(5, 2) NOT NULL
@@ -56,7 +56,7 @@ CREATE TABLE GameBundles (
 
 -- Create BundleGames table
 CREATE TABLE BundleGames (
-    bundleItemID INT PRIMARY KEY AUTO_INCREMENT,
+    bundleItemID INTEGER PRIMARY KEY AUTOINCREMENT,
     bundleID INT NOT NULL,
     gameID INT NOT NULL,
     parentBundleItemID INT,
