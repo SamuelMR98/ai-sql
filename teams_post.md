@@ -35,4 +35,5 @@ Friendly Response: John Doe has referred Jane Smith and Mike Johnson. Jane Smith
 
 ## Conclusion
 
-The strategies used by aks_gpt yielded similar results, but the GPT-4 model provided a query for the question that the GPT-3 model could not handle. My findings suggest that the GPT-4 model is more advanced and can handle more complex queries. GPT is a powerful tool that can help generate SQL queries for various questions. However, it is essential to note that the quality of the responses may vary depending on the complexity of the question and the version of the model used.
+The strategies used by ask_gpt yielded similar results, but the GPT-4 model provided a query for the question that the GPT-3 model could not handle. My findings suggest that the GPT-4 model is more advanced and can handle more complex queries. GPT is a powerful tool that can help generate SQL queries for various questions. However, it is essential to note that the quality of the responses may vary depending on the complexity of the question and the version of the model used.
+
